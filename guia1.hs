@@ -121,3 +121,32 @@ sumaMat (x:xs) (y:ys) = (zipWith (+) x y) : sumaMat xs ys -- se puede usar mapDo
 
 trasponer :: [[Int]] -> [[Int]]
 trasponer [] = []
+
+
+foldNat :: a -> (Integer -> a -> a) -> Integer -> a
+foldNat base _ 0 = base
+foldNat base f n = f n (foldNat base f (n - 1))
+--foldNat 0 (+) 5 --> 15 --> (+) 5 (fold Nat 0 f 4) --> (+) 5 ((+) 4 fold(nat 0 f 3))
+
+data Polinomio a = X
+        | Cte a
+        | Suma (Polinomio a) (Polinomio a)
+        | Prod (Polinomio a) (Polinomio a)
+
+polinomio1 :: Polinomio a
+polinomio1 = X
+
+polinomio2 :: Polinomio Integer
+polinomio2 = Cte 2
+
+polinomio3 :: Polinomio Integer
+polinomio3 = Suma X (Cte 5)
+
+polinomio4 :: Polinomio Integer
+polinomio4 = Prod X (Suma X (Cte 5))
+
+evaluar :: Num a => a -> Polinomio a -> a
+evaluar x X = x
+evaluar _ (Cte a) = a
+evaluar x (Suma p1 p2) = evaluar x p1 + evaluar x p2
+evaluar x (Prod p1 p2) = evaluar x p1 * evaluar x p2
