@@ -119,8 +119,10 @@ sumaMat :: [[Int]] -> [[Int]] -> [[Int]]
 sumaMat [] [] = [] 
 sumaMat (x:xs) (y:ys) = (zipWith (+) x y) : sumaMat xs ys -- se puede usar mapDoble
 
-trasponer :: [[Int]] -> [[Int]]
+trasponer :: [[a]] -> [[a]]
 trasponer [] = []
+trasponer ([]:_) = []
+trasponer xss = map head xss : trasponer (map tail xss)
 
 
 foldNat :: a -> (Integer -> a -> a) -> Integer -> a
@@ -150,3 +152,26 @@ evaluar x X = x
 evaluar _ (Cte a) = a
 evaluar x (Suma p1 p2) = evaluar x p1 + evaluar x p2
 evaluar x (Prod p1 p2) = evaluar x p1 * evaluar x p2
+
+data AB a = Nil | Bin (AB a) a (AB a)
+--Usando recursión explícita, definir los esquemas de recursión estructural (foldAB) y primitiva (recAB), y
+-- dar sus tipos
+foldAB :: (b -> c -> c) -> c -> AB b -> c
+foldAB f z Nil = z
+foldAB f z (Bin iz x der) = f x (foldAB f (foldAB f z iz ) der ) 
+
+sumarElementos :: Num a => AB a -> a
+sumarElementos = foldAB (+) 0
+--sumarElementos (Bin (Bin Nil 4 Nil) 3 Nil)
+-- foldAb (+) 0 (Bin (Bin Nil 4 Nil) 3 Nil) --> (+) 3 (foldAB (+) (foldAB (+) 0 Nil) Nil) --> (+) 3 (foldAB (+) 0 Nil) --> (+) 3 0 --> 3
+
+recAb :: (b-> c -> c) -> c -> AB b -> c 
+recAb f z Nil = z
+recAb f z (Bin iz x der) = f x (recAb f (recAb f z iz) der)
+
+esNil:: AB a -> Bool
+esNil = recAb (\ z arbol -> False) True  -- si no se va al recursivo devielñve z qie es True
+
+altura :: Num a => AB a -> a
+altura = recAb ( \ z arbol  -> z+1) 0 
+-- altura (Bin (Bin Nil 4 Nil) 3 Nil) --> recAb ( \ z arbol  -> z+1) 0 (Bin (Bin Nil 4 Nil) 3 Nil) --> 1 + recAb ( \ z arbol  -> z+1) 0 (Bin Nil 4 Nil) --> 1 + 1 + recAb ( \ z arbol  -> z+1) 0 Nil --> 1 + 1 + 0 --> 2
