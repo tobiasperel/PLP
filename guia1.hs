@@ -156,22 +156,31 @@ evaluar x (Prod p1 p2) = evaluar x p1 * evaluar x p2
 data AB a = Nil | Bin (AB a) a (AB a)
 --Usando recursión explícita, definir los esquemas de recursión estructural (foldAB) y primitiva (recAB), y
 -- dar sus tipos
-foldAB :: (b -> c -> c) -> c -> AB b -> c
+foldAB :: (b -> a -> a) -> a -> AB b -> a
 foldAB f z Nil = z
-foldAB f z (Bin iz x der) = f x (foldAB f (foldAB f z iz ) der ) 
-
+foldAB f z (Bin iz x der) = f x (foldAB f (foldAB f z iz ) der )
+-- el primer b que toma es el valor del nodo, el primer a es el valor recursivo, devuelve algo de tipo a. Luego el z es el segundo parametro(recursivo) depsues toma algo de tipo arbol y devuelve algo de tipo a. 
 sumarElementos :: Num a => AB a -> a
 sumarElementos = foldAB (+) 0
 --sumarElementos (Bin (Bin Nil 4 Nil) 3 Nil)
 -- foldAb (+) 0 (Bin (Bin Nil 4 Nil) 3 Nil) --> (+) 3 (foldAB (+) (foldAB (+) 0 Nil) Nil) --> (+) 3 (foldAB (+) 0 Nil) --> (+) 3 0 --> 3
 
-recAb :: (b-> c -> c) -> c -> AB b -> c 
-recAb f z Nil = z
-recAb f z (Bin iz x der) = f x (recAb f (recAb f z iz) der)
+recAB :: b -> (AB a -> b -> a -> AB a -> b -> b) -> AB a -> b
+recAB casoNil casoBin Nil = casoNil
+recAB casoNil casoBin (Bin izq x der) = casoBin izq (recAB casoNil casoBin izq) x der (recAB casoNil casoBin der)
 
 esNil:: AB a -> Bool
-esNil = recAb (\ z arbol -> False) True  -- si no se va al recursivo devielñve z qie es True
+esNil  =  recAB True (\_ _ _ _ _ -> False) 
 
-altura :: Num a => AB a -> a
-altura = recAb ( \ z arbol  -> z+1) 0 
--- altura (Bin (Bin Nil 4 Nil) 3 Nil) --> recAb ( \ z arbol  -> z+1) 0 (Bin (Bin Nil 4 Nil) 3 Nil) --> 1 + recAb ( \ z arbol  -> z+1) 0 (Bin Nil 4 Nil) --> 1 + 1 + recAb ( \ z arbol  -> z+1) 0 Nil --> 1 + 1 + 0 --> 2
+esNil':: AB a -> Bool
+esNil'  =  foldAB (\ _ _ -> False) True
+
+altura :: Ord a => AB a -> Int
+altura = recAB 0 (\_ resAltIzq _ _ resAltDer -> 1 + max resAltIzq resAltDer)
+-- altura (Bin (Bin (Bin Nil 1 Nil) 2 (Bin Nil 3 Nil)) 4 (Bin Nil 5 (Bin Nil 6 Nil)))
+
+cantNodos :: AB a -> Int
+cantNodos = recAB 0 (\_ resAltIzq _ _ resAltDer -> 1 + resAltDer + resAltIzq)
+
+mejorSegunAB :: (a -> a -> Bool) -> AB a -> Int
+mejorSegunAB f  = recAB 0 (\_ resMaxIz nodo _ resMaxDer -> max resMaxDer resMaxIz ) 
