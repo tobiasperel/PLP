@@ -1,4 +1,5 @@
 import Text.Read.Lex (Number)
+import Text.XHtml (base)
 --preguntas
 -- que seria f y como funciona bien
 -- funciones anonimas
@@ -194,4 +195,17 @@ cantHojas = recAB 0 (\izq resAltIzq _ der resAltDer -> if esNil izq && esNil der
 
 data AIH a = Hoja a | Bin' (AIH a) (AIH a)
 
--- foldAIH :: (a -> b) -> (b -> b -> b) -> AIH a -> b -- a es el valor de la hoja, b es el valor de la rama
+foldAIH :: (a -> b) -> (b -> b -> b) -> AIH a -> b 
+foldAIH fHoja fBin (Hoja x) =  fHoja x
+foldAIH fHoja fBin (Bin' izq der) = fBin (foldAIH fHoja fBin izq) (foldAIH fHoja fBin der)
+
+altura' :: AIH a -> Integer
+altura' = foldAIH (\_ -> 0) (\altIz altDer -> 1+ max altIz altDer)
+
+data RoseTree a = Rose a [RoseTree a]
+
+miRT = Rose 1 [Rose 2 [], Rose 3 [Rose 4 [], Rose 5 [], Rose 6 []]]
+
+foldRoseTree :: (a -> [b] ->b) -> RoseTree a -> b
+foldRoseTree f (Rose nodo hijos) = f nodo (map rec hijos)
+    where rec = foldRoseTree f
