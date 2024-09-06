@@ -182,5 +182,16 @@ altura = recAB 0 (\_ resAltIzq _ _ resAltDer -> 1 + max resAltIzq resAltDer)
 cantNodos :: AB a -> Int
 cantNodos = recAB 0 (\_ resAltIzq _ _ resAltDer -> 1 + resAltDer + resAltIzq)
 
-mejorSegunAB :: (a -> a -> Bool) -> AB a -> Int
-mejorSegunAB f  = recAB 0 (\_ resMaxIz nodo _ resMaxDer -> max resMaxDer resMaxIz ) 
+mejorSegunAB :: Num a => (a -> a -> Bool) -> AB a -> a
+mejorSegunAB f = recAB 0 (\_ resAltIzq x _ resAltDer -> if f x resAltIzq then (if f x resAltDer then x else resAltDer) else resAltIzq)
+-- mejorSegunAB (\x y -> x > y) (Bin (Bin Nil 1 Nil) 2 (Bin Nil 3 Nil)) --> 3 
+
+-- esABB :: Ord a => AB a -> Bool
+-- esABB = recAB True (\ _ resIz x _ resDer -> x >= resIz && x < resDer) 
+
+cantHojas :: AB a -> Int
+cantHojas = recAB 0 (\izq resAltIzq _ der resAltDer -> if esNil izq && esNil der then 1 else resAltIzq + resAltDer)
+
+data AIH a = Hoja a | Bin' (AIH a) (AIH a)
+
+-- foldAIH :: (a -> b) -> (b -> b -> b) -> AIH a -> b -- a es el valor de la hoja, b es el valor de la rama
