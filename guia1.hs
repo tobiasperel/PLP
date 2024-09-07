@@ -1,5 +1,5 @@
 import Text.Read.Lex (Number)
-import Text.XHtml (base)
+import Text.XHtml (base, background)
 --preguntas
 -- que seria f y como funciona bien
 -- funciones anonimas
@@ -209,3 +209,17 @@ miRT = Rose 1 [Rose 2 [], Rose 3 [Rose 4 [], Rose 5 [], Rose 6 []]]
 foldRoseTree :: (a -> [b] ->b) -> RoseTree a -> b
 foldRoseTree f (Rose nodo hijos) = f nodo (map rec hijos)
     where rec = foldRoseTree f
+
+hojas :: RoseTree a -> Int
+hojas = foldRoseTree (\ _ hijos -> if length hijos == 0 then 1 else sum hijos) 
+
+distancia :: RoseTree a -> [Int]
+distancia = foldRoseTree (\_ hijos -> if null hijos then [0] else concatMap (map (+1)) hijos)
+
+altura''' :: RoseTree a -> Int
+altura''' = foldRoseTree(\_ hijos -> if null hijos then 0 else 1 + maximoLista hijos 0)
+
+maximoLista :: [Int]  -> Int -> Int
+maximoLista [] maxi = maxi
+maximoLista (x:xs) maxi = if x > maxi then maximoLista xs x else maximoLista xs maxi
+
