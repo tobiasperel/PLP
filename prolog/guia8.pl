@@ -19,10 +19,12 @@ ancestro(X, Y) :- padre(Z, X), ancestro(Z, Y) .
 
 % 3
 
-natural(0).
+natural(cero).
 natural(suc(X)) :- natural(X).
-menorOIgual(X,X) :- natural(X).
-menorOIgual(X, suc(Y)) :- menorOIgual(X, Y).
+mayorOIgual(X,X) :- natural(X).
+
+mayorOIgual(suc(X),Y) :- mayorOIgual(X, Y).
+
 
 % 4
 juntar(L1, L2, L3) :- append(L1, L2, L3).
@@ -86,11 +88,89 @@ inorder(nil,[]).
 inorder(bin(Izq,V,Der),A) :- inorder(Izq,Rizq),inorder(Der,Rder), append(Rizq,[V|Rder],A).
 
 %%13
-coprimos(X, Y) :- gcd(X, Y) =:= 1.  
 
-esPrimo()
-esPrimo(X,)
-esPrimo(X,V) :-
+coprimos(X,Y):- desde(1,N),N2 is N,between(1,N2,X), Y is N2-X, sonCoprimos(X,Y), X\=1, Y \= 1.
 
-esPrimoAux(X,X) .
-esPrimoAux()
+sonCoprimos(X, Y) :- Z is gcd(X, Y), Z =:= 1.
+
+%%14
+
+cuadradoSemiMagico(N, XS) :-
+    desde(0,Sum),
+    generarMatriz(N,N,Sum,XS). 
+
+generarMatriz(_,0,_,[]).
+generarMatriz(N,C,Sum,[X|XS]):- 
+    C>0,
+    crearLista(N,Sum,X),
+    RestC is C-1,
+    generarMatriz(N,RestC,Sum,XS).
+
+crearLista(0, 0, []).
+crearLista(N,Sum,[X|Lista]):-
+    N>0,
+    between(0,Sum,X),
+    RestSum is Sum-X,
+    RestN is N-1,
+    crearLista(RestN,RestSum,Lista).
+
+%%18
+
+primerosN(0,_,[]).
+primerosN(N,[X|L],[X|L1]):-
+    N>0,
+    N2 is N-1,
+    primerosN(N2,L,L1).
+
+ultimosN(N,L,L2) :- reverse(L,LRev), primerosN(N,LRev,L2).
+
+calcularSumaArray([],0).
+calcularSumaArray([X|XS],Sum) :-calcularSumaArray(XS, RestSum), Sum is X + RestSum.
+
+corteMásParejo(L,L1,L2) :- 
+    unCorte(L,L1,L2,MinDiff),
+    not((unCorte(L,_,_,MinDiff2), MinDiff2 < MinDiff)).
+    
+unCorte(L,L1,L2,MinDiff):-
+    length(L,Largo), 
+    between(1,Largo,N),
+    primerosN(N,L,L1),
+    RestL is Largo-N, 
+    ultimosN(RestL,L,L2),
+    calcularSumaArray(L1,SumaL1),
+    calcularSumaArray(L2,SumaL2),
+    MinDiff is abs(SumaL1-SumaL2).
+
+
+corteMásParejo2(L, L1, L2) :-
+    unCorte2(L, L1, L2, D1),
+    not((unCorte2(L, _, _, D2), D2 < D1)).
+
+unCorte2(L, L1, L2, D) :-
+    append(L1, L2, L), %%recordar que apend te deja trabajar con dos listas no instanciadas
+    sum_list(L1, S1),
+    sum_list(L2, S2),
+    D is abs(S1 - S2).
+
+
+%%20
+%%próximoNumPoderoso(+X,-Y)
+
+próximoNumPoderoso(X,Y) :- unNumPodresoso(X,Y), not((unNumPodresoso(X,Z), Z<Y)).
+unNumPodresoso(X,Y) :- factoral(X,ResX), between(X,ResX,N), raizCuadrada(N,P), esPrimo(P), Y is N. 
+
+raizCuadrada(N, Raiz) :- raizCuadradaAux(N,Raiz,1).
+
+raizCuadradaAux(N,Raiz,I) :- Cuadrado is I*I, N =:= Cuadrado, Raiz is I.
+
+raizCuadradaAux(N,Raiz,I) :- 
+    Cuadrado is I*I, N > Cuadrado, I2 is I+1, raizCuadradaAux(N,Raiz,I2).
+
+esPrimo(X) :- esPrimoAux(X,2).
+esPrimoAux(X,I) :- Z is gcd(X, I), Z =:= 1, I2 is I+1, esPrimoAux(X,I2).
+esPrimoAux(X,X). 
+
+factoral(1,1).
+factoral(X,ResFact):- X>1, X2 is X-1, factoral(X2,ResFact2), ResFact is ResFact2*X.
+
+primoDesde(X,P):- desde(X,P), esPrimo(P),!.
