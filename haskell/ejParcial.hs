@@ -31,3 +31,25 @@ contenido n1 = foldBuffer Nothing (\n2 elem rec -> if n1 == n2 then Just elem el
 
 puedeCompletarLectura :: Buffer a -> Bool 
 puedeCompletarLectura = recBuffer True (\ buf n _ rec -> rec ) ( \buf n rec -> elem n (posicionesOcupadas buf) && rec) 
+
+
+data AT a = NilT | Tri a (AT a) (AT a) (AT a)
+miAT = Tri 1 (Tri 2 NilT NilT NilT) (Tri 3 NilT NilT NilT) (Tri 4 NilT NilT NilT)
+foldAT :: b -> (a-> b-> b-> b->b) -> AT a -> b
+foldAT casoNil _ NilT = casoNil
+foldAT casoNil casoTri (Tri x iz med der) = casoTri x (rec iz) (rec med) (rec der)
+    where rec = foldAT casoNil casoTri 
+
+recAT :: b -> (AT a -> a-> b -> b-> b->b) -> AT a -> b 
+recAT casoNil _ NilT= casoNil
+recAT casoNil casoTri (Tri x iz med der) = casoTri (Tri x iz med der) x (rec iz) (rec med) (rec der)
+    where rec = recAT casoNil casoTri 
+
+preorder :: AT a -> [a]
+preorder = foldAT [] (\x recIz recMed recDer -> [x] ++ recIz ++ recMed ++ recDer) 
+
+mapAT :: (a->b)-> AT a -> AT b 
+mapAT f = foldAT NilT (\x recIz recMed recDer -> Tri (f x) recIz recMed recDer)
+
+nivel :: AT a -> Int -> [a]
+nivel = foldAT (\_-> []) (\x recIz recMed recDer -> \l -> if l ==0 then [x] else recIz (l - 1) ++ recMed (l - 1) ++ recDer (l - 1))
