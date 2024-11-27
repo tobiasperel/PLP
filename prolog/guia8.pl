@@ -42,25 +42,17 @@ prefijo([H|T1], [H|T2]) :- prefijo(T1, T2).
 sufijo([], _).
 sufijo(L1,L2) :- reversa(L1, L1R), reversa(L2, L2R), prefijo(L1R,L2R).
 
-sublista([], _).
-sublista([H|T1], [H|T2]) :- sublista(T1, T2).
-sublista([H|T1], [_|T2]) :- sublista([H|T1], T2).
+sublista([], []).
+
+sublista([X|XS], [X|YS]) :-
+    sublista(XS, YS).
+
+sublista([_|XS], YS) :-
+    sublista(XS, YS).
 
 pertenencia(X, [X|_]).
 pertenencia(X, [_|T]) :- pertenencia(X, T).
 
-
-% 6
-
-
-/*
-7.
-intersección(+L1, +L2, -L3), tal que L3 es la intersección sin repeticiones de las listas L1 y L2, respe-
-tando en L3 el orden en que aparecen los elementos en L1.
-partir(N, L, L1, L2), donde L1 tiene los N primeros elementos de L, y L2 el resto. Si L tiene menos de N
-elementos el predicado debe fallar. ¾Cuán reversible es este predicado? Es decir, ¾qué parámetros pueden
-estar indenidos al momento de la invocación?
-*/
 
 sacarRepetidos([],[]).
 sacarRepetidos([X|Resto],Resultado) :- member(X, Resto), sacarRepetidos(Resto,Resultado).
@@ -71,8 +63,6 @@ sacarRepetidos([X|Resto],[X|Resultado]) :- not(member(X, Resto)), sacarRepetidos
 desde(X,X).
 desde(X,Y) :- N is X+1, desde(N,Y).
 
-
-entre(X,X,X).
 %%11 arbol binario
 
 vacio(nil).
@@ -113,6 +103,30 @@ crearLista(N,Sum,[X|Lista]):-
     RestSum is Sum-X,
     RestN is N-1,
     crearLista(RestN,RestSum,Lista).
+
+
+%%15
+maximoTri(A,B,A):- A > B.
+maximoTri(A,B,B):- A =< B.
+
+esTriangulo(A,B,C) :- maximoTri(A,B,M1), maximoTri(C,M1,Maxi),
+    Suma is A + B + C - Maxi, Suma > Maxi.
+
+
+perimetro(tri(L1, L2, L3), P) :-
+    nonvar(L1), nonvar(L2), nonvar(L3), %% aca se podria usar ground(tri(L1, L2, L3))
+    esTriangulo(L1, L2, L3),
+    P is L1 + L2 + L3.
+
+perimetro(tri(L1, L2, L3), P) :-
+    not(ground(tri(L1,L2,L3))), nonvar(P), 
+    between(1,P,L1), P2 is P-L1,
+    between(1,P2,L2), L3 is P2 -L2, L3 >0, esTriangulo(L1, L2, L3). 
+
+perimetro(tri(L1, L2, L3), P) :-
+    not(ground(tri(L1,L2,L3))), var(P), desde(1,N), between(1,N,L1),
+    N2 is N-L1, between(1,N2,L2), L3 is N2-L2, L3>0, 
+    esTriangulo(L1, L2, L3),P is L1 + L2 + L3.
 
 %%18
 
@@ -174,3 +188,90 @@ factoral(1,1).
 factoral(X,ResFact):- X>1, X2 is X-1, factoral(X2,ResFact2), ResFact is ResFact2*X.
 
 primoDesde(X,P):- desde(X,P), esPrimo(P),!.
+
+primoDesde2(X,X):- esPrimo(X).
+primoDesde2(X,P):- not(esPrimo(X)), X2 is X+1, primoDesde2(X2,P).
+
+%%parcialRecu
+
+generarLista(0,[]).
+generarLista(N,[X|Resto]) :- between(1,N,X), N2 is N-X, generarLista(N2,Resto).
+esCapicua(L) :-reverse(L,LR), L == LR. 
+generarCapicuas(L) :- desde(1,X), generarLista(X,L), esCapicua(L).
+
+estaEnD([P|_],P).
+estaEnD([_|Resto],Q):- estaEnD(Resto,Q).
+
+tokenizar(_,[],[]).
+tokenizar(D,F,[L1|TResto]) :- length(F,LargoFrase), between(1,LargoFrase,N), 
+        append(L1,L2,F),length(L1,N), LargoRestante is LargoFrase-N,
+        length(L2, LargoRestante), estaEnD(D,L1) , tokenizar(D,L2,TResto).
+
+mayorCantPalabras(D,F,T) :- tokenizar(D, F, T), 
+    length(T, LargoT),
+    not((tokenizar(D, F, R), length(R, LargoR), LargoR > LargoT)).
+
+/*
+Diferencia entre =, == y =:=
+=: El operador = se utiliza para unificar dos términos. Puede unificar variables con valores o estructuras.
+==: El operador == se utiliza para verificar si dos términos son idénticos sin intentar unificarlos.
+=:=: El operador =:= se utiliza para comparar el valor numérico de dos expresiones aritméticas después de evaluarlas. No unifica variables.
+*/
+reversa1([], []).
+reversa1([X|Resto], R) :- reversa1(Resto, R2), append(R2, [X], R).
+
+arbol(a, bin(bin(bin(nil,1,nil),2,nil),3,bin(nil,4,nil))).
+obtenerArbol(A) :-
+    arbol(a, A).
+
+%%camino(A,C) :- caminoAux(A,C,[]).
+
+camino(bin(nil, Num, nil), [Num]).
+camino(bin(Izq, Num, _), [Num|Camino]) :-
+    Izq \= nil,
+    camino(Izq, Camino).
+camino(bin(_, Num, Der), [Num|Camino]) :-
+    Der \= nil,
+    camino(Der, Camino).
+
+caminoMasLargo(A,C) :- camino(A,C), length(C,LargoC), 
+        not((camino(A,B), length(B,LargoB), LargoB > LargoC)).
+
+caminoUnicoDeLong(A,N,C) :- camino(A,C), length(C,N), 
+        not((camino(A,B), B \= C, length(B,N))).
+
+sublistaConsecutiva(Lista, Sublista) :-
+    sublistaDesde(Lista, Sublista).  
+sublistaConsecutiva([_|Resto], Sublista) :-
+    sublistaConsecutiva(Resto, Sublista). 
+
+sublistaDesde(_, []).
+sublistaDesde([X|XS], [X|YS]) :-
+    sublistaDesde(XS, YS).
+
+verTodosPrimos([]).
+verTodosPrimos([X|Resto]):- esPrimo(X), verTodosPrimos(Resto).
+
+subListaMasLargaDePrimos(L,SL) :-sublistaConsecutiva(L,SL), verTodosPrimos(SL),
+    length(SL,Largo), not((sublistaConsecutiva(L,SL2),verTodosPrimos(SL2), 
+    length(SL2,Largo2), Largo2 > Largo)).
+
+pertenece(X, [X|_]).
+pertenece(X, [M|Resto]) :- X \= M, pertenece(X, Resto).
+
+conjuntoNaturales(E) :- not( (pertenece(E,X), not(natural(X))) ).
+
+cantAparciones(_, [], 0).
+cantAparciones(X,[X|Resto],R) :- cantAparciones(X,Resto,R2), R is R2 + 1.
+cantAparciones(X,[Y|Resto],R) :-  X \= Y, cantAparciones(X,Resto,R2), R is R2.
+
+masRepetido(L,X) :- cantAparciones(X,L,Cant), not((cantAparciones(_,L,Cant2),Cant2 > Cant)).
+
+calcularSuma(_,0,[]).
+calcularSuma([L1|RestoL],S,[L1|RestoP]):- S2 is S - L1, S2 >= 0, calcularSuma(RestoL, S2, RestoP).
+
+partesQueSumen(L,S,P) :- subset2(L,SubConjunto), calcularSuma(SubConjunto,S,P).
+
+subset2([], []).
+subset2([X|Resto], [X|SubResto]) :- subset2(Resto, SubResto).
+subset2([_|Resto], SubResto) :- subset2(Resto, SubResto).

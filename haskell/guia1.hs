@@ -200,7 +200,6 @@ cantHojas :: AB a -> Int
 cantHojas = recAB 0 (\izq resAltIzq _ der resAltDer -> if esNil izq && esNil der then 1 else resAltIzq + resAltDer)
 
 data AIH a = Hoja a | Bin' (AIH a) (AIH a)
-
 foldAIH :: (a -> b) -> (b -> b -> b) -> AIH a -> b
 foldAIH fHoja fBin (Hoja x) =  fHoja x
 foldAIH fHoja fBin (Bin' izq der) = fBin (foldAIH fHoja fBin izq) (foldAIH fHoja fBin der)
