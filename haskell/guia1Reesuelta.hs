@@ -66,7 +66,7 @@ insertarOrdenado :: Ord a => a -> [a] -> [a]
 insertarOrdenado e = recr(\x xs rec -> if e < x then e:x:xs else x:rec ) []
 
 patito :: (Num a, Eq a) => [a] -> a
-patito = foldr(\x rec -> if x == 3 then 3 else  x + rec) 0 
+patito = foldr(\x rec -> if x == 3 then 3 else x + rec) 0 
 
 --patito [1,2,3,4,5]
 --foldr(\x rec -> if x == 3 then 3 else  x + rec) 0 [1,2,3,4,5]
@@ -95,11 +95,10 @@ foldAB casoNil _ Nil = casoNil
 foldAB casoNil casoBin (Bin iz x der) = casoBin (rec iz) x (rec der)  
     where rec = foldAB casoNil casoBin
 
-recAB :: b -> (AB a -> b -> a -> b -> b) -> AB a -> b
+recAB :: b -> (AB a -> AB a ->  b -> a -> b -> b) -> AB a -> b
 recAB casoNil _ Nil = casoNil 
-recAB casoNil casoBin (Bin iz x der) = casoBin (Bin iz x der) (rec iz) x (rec der)
+recAB casoNil casoBin (Bin iz x der) = casoBin iz der (rec iz) x (rec der)
     where rec = recAB casoNil casoBin 
-
 
 esNil :: AB a -> Bool
 esNil x = case x of
@@ -115,8 +114,11 @@ cantNodos = foldAB 0 (\recIz x recDer -> recIz + recDer +1 )
 mejorSegunAB :: (a -> a -> Bool) -> AB a -> a
 mejorSegunAB f (Bin iz x der) = foldAB x (\recIz x recDer -> if f recIz x then (if f recIz recDer then recIz else recDer) else (if f x recDer then x else recDer)) (Bin iz x der)
 
--- esABB :: Ord a => AB a -> Bool
--- esABB = recAB True (\arb recIz x recD -> )
+--esABB :: Ord a => AB a -> Bool
+--esABB = recAB True (\arb recIz x recD -> )
+
+mismaEstructura :: AB a -> AB a -> Bool
+mismaEstructura = foldAB (\a -> if a == )
 
 data AIH a = Hoja a | Bin' (AIH a) (AIH a)
 miAIH = Bin' (Hoja 1) (Bin' (Hoja 2) (Bin' (Hoja 3) (Bin' (Hoja 4) (Hoja 5))))
